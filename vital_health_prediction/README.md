@@ -3,8 +3,8 @@
 **VitalHealth AI** is an intelligent health monitoring system that combines real-time sensor data with machine learning to predict cardiovascular risk and provide personalized health recommendations. The system uses three biomedical sensors connected to an ESP32 microcontroller and a Flask-based web application with a Gradient Boosting ML model trained on over 200,000 patient records.
 
 **Key Achievements:**
-- 94% model accuracy in predicting cardiovascular risk
-- 99.9% recall rate - catches almost all high-risk cases
+- model accuracy in predicting cardiovascular risk
+- recall rate - catches almost all high-risk cases
 - Real-time monitoring with updates every 3-5 seconds
 - AI chatbot for personalized health guidance
 - Comprehensive PDF reports for medical consultations
@@ -273,7 +273,7 @@ const char* serverUrl = "http://YOUR_COMPUTER_IP:5000/api/sensor-data";
 - Real-time model updates from new data
 - Multi-modal analysis combining vitals with medical images
 
-
+---
 
 ## License
 
