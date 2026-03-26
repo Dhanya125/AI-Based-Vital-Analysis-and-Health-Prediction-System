@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Health Prediction{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-fade-up">
+    <div class="col-lg-8">
+        <div class="text-center mb-4">
+            <h1 class="display-5 fw-bold text-dark">Health Risk Assessment</h1>
+            <p class="text-muted">Enter your vitals to get AI-powered health prediction</p>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fas fa-stethoscope me-2"></i> Vital Signs Input
+            </div>
+            <div class="card-body p-4">
+                <form id="prediction-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-heartbeat text-danger me-1"></i> Heart Rate (BPM)
+                            </label>
+                            <input type="number" class="form-control" id="heart_rate" 
+                                   step="1" required placeholder="60-100">
+                            <small class="text-muted">Normal: 60-100 BPM</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-lungs text-success me-1"></i> SpO₂ (%)
+                            </label>
+                            <input type="number" class="form-control" id="spo2" 
+                                   step="1" required placeholder="95-100">
+                            <small class="text-muted">Normal: 95-100%</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-thermometer-half text-warning me-1"></i> Temperature (°C)
+                        </label>
+                        <input type="number" class="form-control" id="temperature" 
+                               step="0.1" required placeholder="36.1-37.2">
+                        <small class="text-muted">Normal: 36.1-37.2°C</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary-custom w-100" id="predict-btn">
+                        <i class="fas fa-chart-line me-2"></i> Analyze Health Risk
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Result Card -->
+        <div class="card mt-4" id="result-card" style="display: none;">
+            <div class="card-header bg-white">
+                <i class="fas fa-chart-bar me-2"></i> Assessment Result
+            </div>
+            <div class="card-body p-4" id="result-content"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const heart_rate = parseFloat(document.getElementById('heart_rate').value);
+        const spo2 = parseFloat(document.getElementById('spo2').value);
+        const temperature = parseFloat(document.getElementById('temperature').value);
+        
+        if (isNaN(heart_rate) || heart_rate < 30 || heart_rate > 250) {
+            alert('Please enter a valid heart rate (30-250 BPM)');
+            return;
+        }
+        
+        if (isNaN(spo2) || spo2 < 50 || spo2 > 100) {
+            alert('Please enter a valid SpO2 (50-100%)');
+            return;
+        }
+        
+        if (isNaN(temperature) || temperature < 30 || temperature > 45) {
+            alert('Please enter a valid temperature (30-45°C)');
+            return;
+        }
+        
+        const btn = document.getElementById('predict-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div> Analyzing...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ heart_rate, spo2, temperature })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                const resultCard = document.getElementById('result-card');
+                const resultContent = document.getElementById('result-content');
+                
+                const isHigh = result.condition === 'High Risk';
+                const isModerate = result.condition === 'Moderate Risk';
+                const bgColor = isHigh ? '#FFE5E5' : isModerate ? '#FFF0E5' : '#E2F3E8';
+                const color = isHigh ? '#E98585' : isModerate ? '#F5A97F' : '#6FBF8C';
+                const icon = isHigh ? 'exclamation-triangle' : isModerate ? 'exclamation-circle' : 'check-circle';
+                
+                resultContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="mb-3" style="background: ${bgColor}; border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <i class="fas fa-${icon} fa-4x" style="color: ${color};"></i>
+                        </div>
+                        <h2 style="color: ${color};">${result.condition}</h2>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Risk Score</span>
+                                <span>${result.risk_score}</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar ${isHigh ? 'bg-danger' : isModerate ? 'bg-warning' : 'bg-success'}" 
+                                     style="width: ${Math.min(result.risk_score, 100)}%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span>Confidence</span>
+                                <span>${result.confidence}%</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-info" style="width: ${result.confidence}%;"></div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div class="text-start">
+                            <h6><i class="fas fa-clinic-medical me-2"></i> Recommendations</h6>
+                            <ul class="list-unstyled">
+                                ${result.recommendations.map(r => `<li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> ${r}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                resultCard.style.display = 'block';
+                resultCard.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Error: ' + (result.error || 'Could not make prediction'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error making prediction. Please try again.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}VitalHealth AI - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row min-vh-100 align-items-center">
+    <div class="col-lg-6 animate-fade-up">
+        <h1 class="display-4 fw-bold text-dark mb-4">
+            Your Health,<br>
+            <span style="background: linear-gradient(135deg, #9B7BB5, #8A6AAD); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                AI-Powered
+            </span>
+        </h1>
+        <p class="lead text-muted mb-4">
+            Monitor your vital signs and get instant health risk assessments using advanced machine learning.
+            Connect your sensors for real-time monitoring.
+        </p>
+        <div class="d-flex gap-3">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary-custom px-4 py-3">
+                    <i class="fas fa-chart-line me-2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('main.live_data') }}" class="btn btn-outline-custom px-4 py-3">
+                    <i class="fas fa-microchip me-2"></i> Live Monitor
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary-custom px-4 py-3">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-custom px-4 py-3">
+                    <i class="fas fa-user-plus me-2"></i> Get Started
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6 animate-fade-up" style="animation-delay: 0.2s">
+        <div class="row g-4">
+            <div class="col-6">
+                <div class="card text-center p-4 h-100 border-0 shadow-sm">
+                    <div class="mx-auto mb-3" style="width: 60px; height: 60px; background: #FFE5E5; border-radius: 30px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-heartbeat fa-2x" style="color: #E98585;"></i>
+                    </div>
+                    <h5>Heart Rate & SpO₂</h5>
+                    <p class="text-muted small">MAX30102 sensor for accurate monitoring</p>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card text-center p-4 h-100 border-0 shadow-sm">
+                    <div class="mx-auto mb-3" style="width: 60px; height: 60px; background: #FFF0E5; border-radius: 30px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-thermometer-half fa-2x" style="color: #F5A97F;"></i>
+                    </div>
+                    <h5>Temperature</h5>
+                    <p class="text-muted small">MLX90614 non-contact sensor</p>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card text-center p-4 h-100 border-0 shadow-sm">
+                    <div class="mx-auto mb-3" style="width: 60px; height: 60px; background: #E2F3E8; border-radius: 30px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-line fa-2x" style="color: #6FBF8C;"></i>
+                    </div>
+                    <h5>ECG Analysis</h5>
+                    <p class="text-muted small">AD8232 for heart rhythm monitoring</p>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card text-center p-4 h-100 border-0 shadow-sm">
+                    <div class="mx-auto mb-3" style="width: 60px; height: 60px; background: #E9E2F5; border-radius: 30px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-brain fa-2x" style="color: #9B7BB5;"></i>
+                    </div>
+                    <h5>AI Predictions</h5>
+                    <p class="text-muted small">Gradient Boosting for health risk assessment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

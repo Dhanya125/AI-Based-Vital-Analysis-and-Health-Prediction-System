@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>{% block title %}VitalHealth AI{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Pastel Color Palette */
+        :root {
+            --pastel-lavender: #E9E2F5;
+            --pastel-mint: #E2F3E8;
+            --pastel-peach: #FFE8E0;
+            --pastel-blue: #E2F0FF;
+            --pastel-pink: #FFE4F0;
+            --pastel-yellow: #FFF4E0;
+            --primary-soft: #9B7BB5;
+            --primary: #8B6BB5;
+            --primary-dark: #7A5A9E;
+            --success-soft: #A7E0C0;
+            --success: #6FBF8C;
+            --warning-soft: #FFD9B5;
+            --warning: #F5A97F;
+            --danger-soft: #FFD1D1;
+            --danger: #E98585;
+            --info-soft: #C5E0F5;
+            --info: #6BA5D0;
+            --text-dark: #4A4A6A;
+            --text-light: #8A8AA8;
+            --bg-white: #FFFFFF;
+            --bg-soft: #FCFAF8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #FDF9F5 0%, #F9F5F0 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 107, 181, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: floatBg 40s linear infinite;
+        }
+
+        @keyframes floatBg {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.03);
+            padding: 1rem 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-brand i {
+            margin-right: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .nav-link i {
+            margin-right: 6px;
+            font-size: 0.9rem;
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            transform: translateX(-50%);
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-item {
+            padding: 0.6rem 1.5rem;
+            color: var(--text-dark);
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: var(--pastel-lavender);
+            color: var(--primary);
+        }
+
+        .dropdown-item i {
+            margin-right: 8px;
+            width: 20px;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 28px;
+            background: var(--bg-white);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 32px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            background: var(--bg-white);
+            border-bottom: 2px solid #F5F0EC;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .card-header i {
+            margin-right: 8px;
+            color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary-custom:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 107, 181, 0.3);
+            color: white;
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 26px;
+            border-radius: 40px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .animate-fade-up { animation: fadeInUp 0.6s ease forwards; }
+        .animate-slide-left { animation: slideInLeft 0.5s ease forwards; }
+        .animate-slide-right { animation: slideInRight 0.5s ease forwards; }
+
+        /* Loading Spinner */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--pastel-lavender);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 20px;
+            padding: 1rem 1.25rem;
+            animation: slideInLeft 0.4s ease;
+        }
+
+        .alert-success { background: var(--pastel-mint); color: #3B6B4F; }
+        .alert-danger { background: var(--pastel-peach); color: #B85C5C; }
+        .alert-warning { background: var(--pastel-yellow); color: #B87A4A; }
+        .alert-info { background: var(--pastel-blue); color: #4A6F8F; }
+
+        /* Form Controls */
+        .form-control, .form-select {
+            border-radius: 20px;
+            border: 1.5px solid #F0E8E0;
+            padding: 12px 18px;
+            transition: all 0.3s ease;
+            background: var(--bg-white);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 107, 181, 0.1);
+            outline: none;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Tables */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            border-bottom: 1px solid #F0E8E0;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            color: var(--text-dark);
+        }
+
+        .table tbody tr:hover {
+            background: #F9FAFB;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 40px;
+            font-weight: 500;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F5F0EC;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-soft);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar { padding: 0.75rem 1rem; }
+            .card-header { padding: 1rem; }
+            .btn-primary-custom, .btn-outline-custom { padding: 8px 20px; }
+            .nav-link { margin: 0 0.25rem; font-size: 0.9rem; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    {% if current_user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+                <i class="fas fa-heartbeat"></i> VitalHealth AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.trends' %}active{% endif %}" href="{{ url_for('main.trends') }}">
+                            <i class="fas fa-chart-simple"></i> Trends
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.live_data' %}active{% endif %}" href="{{ url_for('main.live_data') }}">
+                            <i class="fas fa-microchip"></i> Live Data
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.prediction' %}active{% endif %}" href="{{ url_for('main.prediction') }}">
+                            <i class="fas fa-brain"></i> Predict
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.chat' %}active{% endif %}" href="{{ url_for('main.chat') }}">
+                            <i class="fas fa-robot"></i> AI Chat
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.profile_view') }}">
+                                    <i class="fas fa-id-card"></i> My Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.profile_edit') }}">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <main class="container py-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show animate-fade-up" role="alert">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

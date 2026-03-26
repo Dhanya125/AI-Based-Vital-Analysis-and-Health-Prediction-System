@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-up">
+    <div class="col-lg-4 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #8B5CF6, #7C3AED); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-user fa-3x" style="color: white;"></i>
+                    </div>
+                </div>
+                <h3>{{ user.username }}</h3>
+                <p class="text-muted">{{ user.email }}</p>
+                <p><small>Member since {{ user.created_at.strftime('%B %Y') }}</small></p>
+                <a href="{{ url_for('main.profile_edit') }}" class="btn btn-primary-custom">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-user-circle"></i> Personal Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small">Age</label>
+                        <p class="fw-bold">{{ user.age or 'Not set' }} years</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small">Gender</label>
+                        <p class="fw-bold">{{ user.gender or 'Not set' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small">Height</label>
+                        <p class="fw-bold">{{ user.height or 'Not set' }} cm</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small">Weight</label>
+                        <p class="fw-bold">{{ user.weight or 'Not set' }} kg</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small">BMI</label>
+                        <p class="fw-bold">
+                            {{ user.get_bmi() or 'Not calculated' }}
+                            {% if user.get_bmi() %}
+                            <span class="badge" style="background: {{ user.get_bmi_category()[1] }}; color: white;">
+                                <i class="fas {{ user.get_bmi_category()[2] }}"></i> {{ user.get_bmi_category()[0] }}
+                            </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-heart"></i> Lifestyle & Health
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="text-muted small">Smoking</label>
+                        <p class="fw-bold">{{ user.smoker or 'Not set' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="text-muted small">Alcohol</label>
+                        <p class="fw-bold">{{ user.alcohol_consumer or 'Not set' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="text-muted small">Exercise</label>
+                        <p class="fw-bold">{{ user.exercise_frequency or 'Not set' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-notes-medical"></i> Medical Conditions
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% set conditions = user.get_medical_conditions_dict() %}
+                    {% for condition, data in conditions.items() %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: {{ '#FEF3C7' if data.enabled else '#F9FAFB' }}">
+                            <span>
+                                <i class="fas fa-{{ 'check-circle' if data.enabled else 'circle' }} me-2" style="color: {{ '#F59E0B' if data.enabled else '#9CA3AF' }}"></i>
+                                {{ condition.replace('_', ' ').title() }}
+                            </span>
+                            {% if data.enabled %}
+                            <span class="badge bg-warning">{{ data.severity }}</span>
+                            {% else %}
+                            <span class="text-muted small">Not reported</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

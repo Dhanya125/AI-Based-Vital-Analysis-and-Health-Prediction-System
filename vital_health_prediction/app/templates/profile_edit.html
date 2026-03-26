@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-up">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fas fa-edit me-2"></i> Edit Profile
+                <small class="text-muted ms-2">Your changes will reflect in your health reports</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('api.update_profile') }}">
+                    <h6 class="fw-bold mb-3">Basic Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Age (years)</label>
+                            <input type="number" class="form-control" name="age" value="{{ user.age or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gender</label>
+                            <select class="form-select" name="gender">
+                                <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Height (cm)</label>
+                            <input type="number" class="form-control" name="height" step="0.1" value="{{ user.height or '' }}">
+                            <small class="text-muted">Used for BMI calculation</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Weight (kg)</label>
+                            <input type="number" class="form-control" name="weight" step="0.1" value="{{ user.weight or '' }}">
+                            <small class="text-muted">Used for BMI calculation</small>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3 mt-4">Lifestyle Factors</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Smoking Status</label>
+                            <select class="form-select" name="smoker">
+                                <option value="never" {% if user.smoker == 'never' %}selected{% endif %}>Never Smoked</option>
+                                <option value="past" {% if user.smoker == 'past' %}selected{% endif %}>Past Smoker</option>
+                                <option value="current" {% if user.smoker == 'current' %}selected{% endif %}>Current Smoker</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Alcohol Consumption</label>
+                            <select class="form-select" name="alcohol">
+                                <option value="never" {% if user.alcohol_consumer == 'never' %}selected{% endif %}>Never</option>
+                                <option value="occasional" {% if user.alcohol_consumer == 'occasional' %}selected{% endif %}>Occasional</option>
+                                <option value="regular" {% if user.alcohol_consumer == 'regular' %}selected{% endif %}>Regular</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Exercise Frequency</label>
+                            <select class="form-select" name="exercise">
+                                <option value="sedentary" {% if user.exercise_frequency == 'sedentary' %}selected{% endif %}>Sedentary</option>
+                                <option value="light" {% if user.exercise_frequency == 'light' %}selected{% endif %}>Light (1-2x/week)</option>
+                                <option value="moderate" {% if user.exercise_frequency == 'moderate' %}selected{% endif %}>Moderate (3-4x/week)</option>
+                                <option value="active" {% if user.exercise_frequency == 'active' %}selected{% endif %}>Active (5+ x/week)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Updating your profile will automatically update your health reports with the latest information.
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary-custom mt-3">
+                        <i class="fas fa-save"></i> Save Changes & Update Reports
+                    </button>
+                    <a href="{{ url_for('main.profile_view') }}" class="btn btn-outline-custom mt-3 ms-2">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 28px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.4s ease;
+        border: 1px solid #F0E8E0;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 16px 28px rgba(0,0,0,0.06); }
+    .stat-icon { width: 65px; height: 65px; border-radius: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: #4A4A6A; margin: 0.5rem 0; }
+    .alert-item { background: #FFFBF5; border-radius: 20px; padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid #F5A97F; }
+    .alert-item.critical { border-left-color: #E98585; background: #FFF5F5; }
+    .quick-action-btn { background: white; border: 1px solid #F0E8E0; border-radius: 20px; padding: 1rem; text-align: center; transition: all 0.3s ease; display: block; text-decoration: none; color: #4A4A6A; }
+    .quick-action-btn:hover { transform: translateY(-3px); border-color: #9B7BB5; color: #9B7BB5; }
+    .quick-action-btn i { font-size: 1.8rem; margin-bottom: 0.5rem; display: block; }
+    .welcome-badge { background: linear-gradient(135deg, #E2F3E8, #E9E2F5); border-radius: 60px; padding: 0.5rem 1rem; display: inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-up">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h1 class="display-5 fw-bold text-dark">Hello, {{ current_user.username }}! 👋</h1>
+                    <p class="text-muted mt-2">Your health dashboard</p>
+                </div>
+                <div class="mt-2 mt-sm-0 d-flex gap-2">
+                    <span class="welcome-badge"><i class="fas fa-calendar-alt me-1"></i> {{ now.strftime('%B %d, %Y') }}</span>
+                    <a href="{{ url_for('main.download_report') }}" class="btn" style="background: linear-gradient(135deg, #6FBF8C, #5A9F6F); color: white; border-radius: 40px; padding: 8px 20px;">
+                        <i class="fas fa-download me-2"></i> Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 col-6">
+            <div class="stat-card"><div class="stat-icon" style="background: #FFE5E5;"><i class="fas fa-heartbeat fa-2x" style="color: #E98585;"></i></div><div class="stat-value" id="last-hr">--</div><div class="text-muted small">Heart Rate (BPM)</div></div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card"><div class="stat-icon" style="background: #E2F3E8;"><i class="fas fa-lungs fa-2x" style="color: #6FBF8C;"></i></div><div class="stat-value" id="last-spo2">--</div><div class="text-muted small">SpO₂ (%)</div></div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card"><div class="stat-icon" style="background: #FFF0E5;"><i class="fas fa-thermometer-half fa-2x" style="color: #F5A97F;"></i></div><div class="stat-value" id="last-temp">--</div><div class="text-muted small">Temperature (°C)</div></div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card"><div class="stat-icon" style="background: #E9E2F5;"><i class="fas fa-chart-simple fa-2x" style="color: #9B7BB5;"></i></div><div class="stat-value" id="risk-level">--</div><div class="text-muted small">Risk Level</div></div>
+        </div>
+    </div>
+    
+    <!-- Alerts Section -->
+    {% if unread_alerts %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <i class="fas fa-bell me-2" style="color: #F5A97F;"></i> Recent Alerts
+                    <span class="badge bg-danger ms-2 rounded-pill">{{ unread_alerts|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% for alert in unread_alerts %}
+                    <div class="alert-item {% if alert.alert_type == 'critical' %}critical{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-{{ 'exclamation-triangle' if alert.alert_type == 'critical' else 'info-circle' }} me-3 fa-lg"></i>
+                            <div class="flex-grow-1">
+                                <strong>{{ alert.timestamp.strftime('%H:%M:%S') }}</strong> - {{ alert.message }}
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="acknowledgeAlert({{ alert.id }})">
+                                <i class="fas fa-check"></i> Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-sm btn-outline-custom mt-2 rounded-pill" onclick="acknowledgeAlerts()">
+                        <i class="fas fa-check-double"></i> Dismiss All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Records -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <i class="fas fa-clock me-2"></i> Recent Vital Records
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead><tr style="background: #FCF9F5;"><th>Time</th><th>Heart Rate</th><th>SpO₂</th><th>Temperature</th><th>Status</th></tr></thead>
+                            <tbody>
+                                {% for vital in recent_vitals %}
+                                <tr>
+                                    <td><i class="far fa-clock me-2 text-muted"></i>{{ vital.timestamp.strftime('%H:%M:%S') }}</td>
+                                    <td><strong>{{ vital.heart_rate }}</strong> BPM</td>
+                                    <td><strong>{{ vital.spo2 }}</strong>%</td>
+                                    <td><strong>{{ vital.temperature }}</strong>°C</td>
+                                    <td>{% if vital.heart_rate > 100 or vital.spo2 < 95 %}<span class="badge" style="background: #FFF0E5; color: #B87A4A;">⚠️ Caution</span>{% else %}<span class="badge" style="background: #E2F3E8; color: #3B6B4F;">✓ Normal</span>{% endif %}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-chart-line fa-2x mb-2 d-block"></i>No data yet. Go to Live Data to start monitoring!</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white"><i class="fas fa-chart-simple me-2"></i> Health Snapshot</div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2"><span>BMI</span><strong>{{ "%.1f"|format(current_user.get_bmi()) if current_user.get_bmi() else 'Not calculated' }}</strong></div>
+                        <div class="progress" style="height: 8px; background: #F0E8E0;"><div class="progress-bar" style="width: {{ (current_user.get_bmi()|min(40)) if current_user.get_bmi() else 0 }}%; background: #6FBF8C;"></div></div>
+                        <small class="text-muted">{{ current_user.get_bmi_category()[0] if current_user.get_bmi() else 'Add height/weight in profile' }}</small>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-4 text-center"><i class="fas fa-smoking fa-lg mb-1 d-block" style="color: #F5A97F;"></i><small class="text-muted">Smoking</small><div class="fw-semibold">{{ current_user.smoker or 'Not set' }}</div></div>
+                        <div class="col-4 text-center"><i class="fas fa-wine-bottle fa-lg mb-1 d-block" style="color: #F5A97F;"></i><small class="text-muted">Alcohol</small><div class="fw-semibold">{{ current_user.alcohol_consumer or 'Not set' }}</div></div>
+                        <div class="col-4 text-center"><i class="fas fa-person-walking fa-lg mb-1 d-block" style="color: #6FBF8C;"></i><small class="text-muted">Exercise</small><div class="fw-semibold">{{ current_user.exercise_frequency or 'Not set' }}</div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white"><i class="fas fa-bolt me-2"></i> Quick Actions</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6"><a href="{{ url_for('main.live_data') }}" class="quick-action-btn"><i class="fas fa-play-circle fa-2x" style="color: #6FBF8C;"></i><div class="mt-2 fw-semibold">Live Monitor</div><small>Real-time data</small></a></div>
+                        <div class="col-6"><a href="{{ url_for('main.prediction') }}" class="quick-action-btn"><i class="fas fa-chart-line fa-2x" style="color: #9B7BB5;"></i><div class="mt-2 fw-semibold">Predict</div><small>Health risk</small></a></div>
+                        <div class="col-6"><a href="{{ url_for('main.chat') }}" class="quick-action-btn"><i class="fas fa-robot fa-2x" style="color: #6FBF8C;"></i><div class="mt-2 fw-semibold">AI Chat</div><small>Ask anything</small></a></div>
+                        <div class="col-6"><a href="{{ url_for('main.profile_edit') }}" class="quick-action-btn"><i class="fas fa-user-edit fa-2x" style="color: #F5A97F;"></i><div class="mt-2 fw-semibold">Edit Profile</div><small>Update info</small></a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fetchLatestVitals() {
+    fetch('/api/historical-data?limit=1')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                const latest = data[0];
+                document.getElementById('last-hr').innerHTML = latest.heart_rate || '--';
+                document.getElementById('last-spo2').innerHTML = latest.spo2 || '--';
+                document.getElementById('last-temp').innerHTML = latest.temperature || '--';
+                let risk = 'Low';
+                if (latest.heart_rate > 100 || latest.spo2 < 95 || latest.temperature > 37.5) risk = 'Moderate';
+                if (latest.heart_rate > 120 || latest.spo2 < 90 || latest.temperature > 38.5) risk = 'High';
+                document.getElementById('risk-level').innerHTML = risk;
+            }
+        });
+}
+
+function acknowledgeAlerts() { fetch('/api/alerts/acknowledge', {method: 'POST'}).then(() => location.reload()); }
+function acknowledgeAlert(id) { fetch(`/api/alerts/acknowledge/${id}`, {method: 'POST'}).then(() => location.reload()); }
+
+fetchLatestVitals();
+setInterval(fetchLatestVitals, 10000);
+</script>
+{% endblock %}

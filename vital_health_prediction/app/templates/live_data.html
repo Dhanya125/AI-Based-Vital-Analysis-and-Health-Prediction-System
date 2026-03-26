@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Live Health Monitor{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vital-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+        border-radius: 28px;
+        padding: 1.8rem;
+        text-align: center;
+        transition: all 0.4s ease;
+        border: 1px solid rgba(155, 123, 181, 0.2);
+    }
+    .vital-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .vital-icon { width: 80px; height: 80px; border-radius: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .vital-value { font-size: 2.5rem; font-weight: 800; color: #4A4A6A; margin: 0.5rem 0; }
+    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; margin-top: 10px; }
+    .status-normal { background: #E2F3E8; color: #3B6B4F; }
+    .status-warning { background: #FFF0E5; color: #B87A4A; }
+    .status-critical { background: #FFE5E5; color: #B85C5C; animation: pulse 1s infinite; }
+    .prediction-card {
+        background: linear-gradient(135deg, #9B7BB5, #8A6AAD);
+        border-radius: 28px;
+        padding: 1.5rem;
+        color: white;
+        transition: all 0.4s ease;
+    }
+    .risk-level { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .confidence-bar { background: rgba(255,255,255,0.2); border-radius: 20px; height: 12px; overflow: hidden; }
+    .confidence-fill { background: white; height: 100%; border-radius: 20px; transition: width 1s ease; }
+    .recommendation-item { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 12px; margin-bottom: 10px; transition: all 0.3s ease; }
+    .connection-status { background: white; border-radius: 60px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 10px; }
+    .status-dot { width: 12px; height: 12px; border-radius: 6px; animation: pulse 1.5s infinite; }
+    .status-dot.connected { background: #6FBF8C; box-shadow: 0 0 10px #6FBF8C; }
+    .status-dot.disconnected { background: #E98585; }
+    .status-dot.simulating { background: #F5A97F; box-shadow: 0 0 10px #F5A97F; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-up">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-5 fw-bold text-dark">Live Health Monitor</h1>
+            <p class="text-muted">Real-time vital signs with AI-powered predictions</p>
+        </div>
+    </div>
+    
+    <!-- Connection Controls -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-center">
+            <div class="connection-status">
+                <div class="status-dot disconnected" id="status-dot"></div>
+                <span id="status-text">Disconnected</span>
+                <button class="btn btn-sm btn-primary-custom ms-3" id="connect-btn" onclick="startSimulation()">
+                    <i class="fas fa-play"></i> Start Demo
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vital Signs Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="vital-card">
+                <div class="vital-icon" style="background: #FFE5E5;"><i class="fas fa-heartbeat fa-3x" style="color: #E98585;"></i></div>
+                <div class="vital-value" id="live-hr">--</div>
+                <div class="vital-label">Heart Rate (BPM)</div>
+                <div class="status-badge status-normal" id="hr-status">Waiting...</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="vital-card">
+                <div class="vital-icon" style="background: #E2F3E8;"><i class="fas fa-lungs fa-3x" style="color: #6FBF8C;"></i></div>
+                <div class="vital-value" id="live-spo2">--</div>
+                <div class="vital-label">Oxygen Saturation (%)</div>
+                <div class="status-badge status-normal" id="spo2-status">Waiting...</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="vital-card">
+                <div class="vital-icon" style="background: #FFF0E5;"><i class="fas fa-thermometer-half fa-3x" style="color: #F5A97F;"></i></div>
+                <div class="vital-value" id="live-temp">--</div>
+                <div class="vital-label">Temperature (°C)</div>
+                <div class="status-badge status-normal" id="temp-status">Waiting...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Prediction Section -->
+    <div class="row" id="prediction-section" style="display: none;">
+        <div class="col-12">
+            <div class="prediction-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0"><i class="fas fa-brain me-2"></i> AI Health Prediction</h4>
+                    <span class="badge bg-light text-dark" id="prediction-time">Just now</span>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="risk-level" id="risk-level">--</div>
+                        <div class="small opacity-75">Risk Level</div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Confidence Score</span>
+                                <span id="confidence-score">--%</span>
+                            </div>
+                            <div class="confidence-bar mt-1">
+                                <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Risk Score</span>
+                                <span id="risk-score">--</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 6px; background: rgba(255,255,255,0.2);">
+                                <div class="progress-bar bg-white" id="risk-score-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="recommendations-list" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ECG Visualization -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <i class="fas fa-chart-line me-2" style="color: #9B7BB5;"></i> Live ECG Waveform
+                </div>
+                <div class="card-body">
+                    <canvas id="ecg-canvas" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let ecgChart = null;
+    let ecgData = [];
+    let simulationInterval = null;
+    let isSimulating = false;
+    
+    // Initialize ECG Chart
+    function initECGChart() {
+        const ctx = document.getElementById('ecg-canvas').getContext('2d');
+        ecgChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(200).fill(''),
+                datasets: [{
+                    label: 'ECG Signal',
+                    data: Array(200).fill(0),
+                    borderColor: '#9B7BB5',
+                    backgroundColor: 'rgba(155, 123, 181, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.2,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { min: 0, max: 4095, title: { display: true, text: 'Amplitude' } } }
+            }
+        });
+    }
+    
+    // Update ECG
+    function updateECG(value) {
+        if (!ecgChart) return;
+        ecgData.push(value);
+        if (ecgData.length > 200) ecgData.shift();
+        ecgChart.data.datasets[0].data = ecgData;
+        ecgChart.update();
+    }
+    
+    // Update status badge
+    function updateStatus(value, type, normalMin, normalMax) {
+        let status = 'normal', statusClass = 'status-normal', statusText = 'Normal';
+        if (value > normalMax || value < normalMin) {
+            status = 'warning';
+            statusClass = 'status-warning';
+            statusText = 'Warning';
+        }
+        if ((type === 'hr' && (value >= 120 || value <= 50)) || 
+            (type === 'spo2' && value <= 90) || 
+            (type === 'temp' && (value >= 38.5 || value <= 35))) {
+            status = 'critical';
+            statusClass = 'status-critical';
+            statusText = 'Critical!';
+        }
+        document.getElementById(`${type}-status`).innerHTML = statusText;
+        document.getElementById(`${type}-status`).className = `status-badge ${statusClass}`;
+        return status;
+    }
+    
+    // Make prediction with current vitals
+    async function makePrediction(heartRate, spo2, temperature) {
+        try {
+            const response = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ heart_rate: heartRate, spo2: spo2, temperature: temperature })
+            });
+            const result = await response.json();
+            
+            // Show prediction section
+            document.getElementById('prediction-section').style.display = 'block';
+            
+            // Update risk level with color
+            const riskEl = document.getElementById('risk-level');
+            riskEl.innerHTML = result.condition;
+            const riskColors = { 'High Risk': '#E98585', 'Moderate Risk': '#F5A97F', 'Low Risk': '#6FBF8C' };
+            riskEl.style.color = riskColors[result.condition];
+            
+            // Update confidence
+            document.getElementById('confidence-score').innerHTML = `${result.confidence}%`;
+            document.getElementById('confidence-fill').style.width = `${result.confidence}%`;
+            document.getElementById('risk-score').innerHTML = result.risk_score;
+            document.getElementById('risk-score-bar').style.width = `${Math.min(result.risk_score, 100)}%`;
+            document.getElementById('prediction-time').innerHTML = new Date().toLocaleTimeString();
+            
+            // Update recommendations
+            const recList = document.getElementById('recommendations-list');
+            recList.innerHTML = result.recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <i class="fas fa-heartbeat me-2"></i> ${rec}
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Prediction error:', error);
+        }
+    }
+    
+    // Process sensor data
+    function processSensorData(data) {
+        document.getElementById('live-hr').innerHTML = data.heart_rate;
+        document.getElementById('live-spo2').innerHTML = data.spo2;
+        document.getElementById('live-temp').innerHTML = data.temperature.toFixed(1);
+        
+        updateStatus(data.heart_rate, 'hr', 60, 100);
+        updateStatus(data.spo2, 'spo2', 95, 100);
+        updateStatus(data.temperature, 'temp', 36.1, 37.2);
+        
+        if (data.ecg_sample) updateECG(data.ecg_sample);
+        
+        makePrediction(data.heart_rate, data.spo2, data.temperature);
+    }
+    
+    // Start simulation
+    function startSimulation() {
+        if (isSimulating) return;
+        isSimulating = true;
+        
+        document.getElementById('status-dot').className = 'status-dot simulating';
+        document.getElementById('status-text').innerHTML = 'Demo Mode Active';
+        document.getElementById('connect-btn').innerHTML = '<i class="fas fa-stop"></i> Stop Demo';
+        document.getElementById('connect-btn').onclick = stopSimulation;
+        
+        simulationInterval = setInterval(() => {
+            const hr = Math.floor(Math.random() * 80) + 60;
+            const spo2 = Math.floor(Math.random() * 10) + 90;
+            const temp = (Math.random() * 2) + 36.5;
+            const ecg = Math.floor(Math.random() * 4095);
+            
+            processSensorData({ heart_rate: hr, spo2: spo2, temperature: temp, ecg_sample: ecg });
+        }, 5000);
+    }
+    
+    // Stop simulation
+    function stopSimulation() {
+        if (simulationInterval) clearInterval(simulationInterval);
+        isSimulating = false;
+        document.getElementById('status-dot').className = 'status-dot disconnected';
+        document.getElementById('status-text').innerHTML = 'Disconnected';
+        document.getElementById('connect-btn').innerHTML = '<i class="fas fa-play"></i> Start Demo';
+        document.getElementById('connect-btn').onclick = startSimulation;
+        document.getElementById('prediction-section').style.display = 'none';
+    }
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        initECGChart();
+        setTimeout(startSimulation, 500);
+    });
+</script>
+{% endblock %}

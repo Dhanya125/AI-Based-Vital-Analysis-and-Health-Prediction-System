@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Reports - VitalHealth AI{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-white mb-4">
+            <i class="fas fa-file-medical"></i> Medical Reports
+        </h1>
+        <p class="text-white-50">Upload and compare medical reports with AI predictions</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-upload"></i> Upload New Report
+            </div>
+            <div class="card-body">
+                <form id="upload-report-form" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Prediction to Compare</label>
+                            <select class="form-control" id="prediction-select" required>
+                                <option value="">Select a prediction...</option>
+                                {% for pred in recent_predictions %}
+                                <option value="{{ pred.id }}">
+                                    {{ pred.timestamp.strftime('%Y-%m-%d %H:%M') }} - {{ pred.predicted_condition }} ({{ pred.confidence_score }}% confidence)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Upload Medical Report (PDF/Image)</label>
+                            <input type="file" class="form-control" id="report-file" accept=".pdf,.jpg,.png,.jpeg" required>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Doctor's Diagnosis</label>
+                            <input type="text" class="form-control" id="doctor-diagnosis" placeholder="e.g., Normal, Hypertension, etc.">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="fas fa-upload"></i> Upload Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history"></i> Previous Reports
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Prediction</th>
+                                <th>Doctor's Diagnosis</th>
+                                <th>Verification</th>
+                                <th>Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>{{ report.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <span class="badge {% if report.prediction.predicted_condition == 'High Risk' %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ report.prediction.predicted_condition }}
+                                    </span>
+                                    <br>
+                                    <small>{{ report.prediction.confidence_score }}% confidence</small>
+                                </td>
+                                <td>{{ report.doctor_diagnosis or 'Not provided' }}</td>
+                                <td>
+                                    {% if report.verified %}
+                                        <span class="badge bg-success">✓ Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.report_file %}
+                                        <a href="{{ url_for('static', filename='uploads/' + report.report_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> View
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No reports uploaded yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('upload-report-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const predictionId = document.getElementById('prediction-select').value;
+        const reportFile = document.getElementById('report-file').files[0];
+        const doctorDiagnosis = document.getElementById('doctor-diagnosis').value;
+        
+        if (!predictionId) {
+            alert('Please select a prediction to compare');
+            return;
+        }
+        
+        if (!reportFile) {
+            alert('Please select a report file to upload');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('prediction_id', predictionId);
+        formData.append('report', reportFile);
+        formData.append('doctor_diagnosis', doctorDiagnosis);
+        
+        const submitBtn = this.querySelector('button');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<div class="loader" style="width:20px;height:20px;"></div> Uploading...';
+        submitBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/compare-report', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                alert('Report uploaded successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error uploading report');
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}
