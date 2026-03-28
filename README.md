@@ -1,27 +1,15 @@
 # VitalHealth AI - Intelligent Health Monitoring & Prediction System
-## 📋 Table of Contents
 
-- [📖 Overview](#-overview)
-- [✨ Key Features](#-key-features)
-- [📊 Model Performance](#-model-performance)
-- [🛠️ Technology Stack](#️-technology-stack)
-- [📁 Project Structure](#-project-structure)
-- [🚀 Installation & Setup](#-installation--setup)
-- [🔌 Hardware Setup](#-hardware-setup)
-- [🎯 Usage Guide](#-usage-guide)
-- [📡 API Endpoints](#-api-endpoints)
-- [🧠 Machine Learning Model](#-machine-learning-model)
-- [🔒 Security Features](#-security-features)
-- [📈 Future Enhancements](#-future-enhancements)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [👥 Authors](#-authors)
+
+**An AI-powered health monitoring system that combines real-time sensor data with machine learning to provide instant health risk assessments and personalized recommendations.**
 
 ---
 
 ## 📖 Overview
 
-**VitalHealth AI** is an innovative health monitoring and prediction platform that seamlessly integrates real-time sensor technology with advanced machine learning to deliver intelligent health risk assessments. The system utilizes three specialized biomedical sensors—**MAX30102** for heart rate and SpO₂ monitoring, **MLX90614** for non-contact temperature measurement, and **AD8232** for ECG signal acquisition—all interfaced through an ESP32 microcontroller that wirelessly transmits data to a sophisticated Flask-based web application. The heart of the system lies in its **Gradient Boosting Machine Learning model**, meticulously trained on over 200,000 patient records to achieve exceptional predictive accuracy of **94%** with an impressive **99.9% recall rate**, ensuring critical health risks are identified with minimal false negatives.
+**VitalHealth AI** is an innovative health monitoring and prediction platform that seamlessly integrates real-time sensor technology with advanced machine learning to deliver intelligent health risk assessments. The system utilizes three specialized biomedical sensors—**MAX30102** for heart rate and SpO₂ monitoring, **MLX90614** for non-contact temperature measurement, and **AD8232** for ECG signal acquisition—all interfaced through an ESP32 microcontroller that wirelessly transmits data to a sophisticated Flask-based web application.
+
+The heart of the system lies in its **Gradient Boosting Machine Learning model**, which analyzes vital signs along with user medical history and lifestyle factors to provide accurate health risk predictions with personalized recommendations. The platform features a beautiful, responsive user interface with real-time ECG visualization, an AI-powered chatbot assistant, comprehensive health analytics, and one-click PDF report generation.
 
 This project was developed for the **DevHub 1.0 Hackathon**, demonstrating the convergence of IoT, artificial intelligence, and healthcare to create an accessible, intelligent health monitoring solution.
 
@@ -30,10 +18,16 @@ This project was developed for the **DevHub 1.0 Hackathon**, demonstrating the c
 ## ✨ Key Features
 
 ### 🏥 Real-time Sensor Integration
-- **MAX30102** - Heart Rate & SpO₂ monitoring via photoplethysmography
+- **MAX30102** - Heart rate & SpO₂ monitoring via photoplethysmography
 - **MLX90614** - Non-contact infrared temperature sensing
 - **AD8232** - ECG signal acquisition with lead-off detection
 - **ESP32** - Wireless data transmission to web application
+
+### 🤖 AI-Powered Predictions
+- Cardiovascular risk assessment using Gradient Boosting algorithm
+- Personalized risk scores incorporating medical conditions and lifestyle factors
+- Real-time predictions with confidence scoring
+- Automatic alert generation for critical readings
 
 ### 📈 Live Visualization
 - Real-time ECG waveform display using Chart.js
@@ -49,7 +43,7 @@ This project was developed for the **DevHub 1.0 Hackathon**, demonstrating the c
 
 ### 📊 Health Analytics
 - Heart rate, SpO₂, and temperature trend charts
-- Risk distribution pie chart
+- Risk distribution visualization
 - Summary statistics with min, max, and average values
 - Personalized health insights based on data patterns
 
@@ -72,6 +66,7 @@ This project was developed for the **DevHub 1.0 Hackathon**, demonstrating the c
 - Warning alerts for borderline readings
 - Acknowledgment system for alert management
 - Color-coded status badges (Normal/Warning/Critical)
+
 ---
 
 ## 🛠️ Technology Stack
@@ -112,4 +107,3 @@ This project was developed for the **DevHub 1.0 Hackathon**, demonstrating the c
 | MLX90614 | Non-contact temperature sensing |
 | AD8232 | ECG signal acquisition |
 
----
